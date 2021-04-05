@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Project was exported from assembly: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Team Tools\DiagnosticsHub\Collector\VSDiagnostics.exe-->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1B2ACD76-7AAC-42F1-A050-AAAE62920438}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>VSDiagnostics</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <ApplicationVersion>15.0.0.0</ApplicationVersion>
+    <FileAlignment>512</FileAlignment>
+    <RootNamespace>Microsoft</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DiagnosticsHub.Packaging.Interop">
+      <HintPath>lib\DiagnosticsHub.Packaging.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="DiagnosticsHub.StandardCollector.Host.Interop">
+      <HintPath>lib\DiagnosticsHub.StandardCollector.Host.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.DiagnosticsHub.Packaging.InteropEx">
+      <HintPath>lib\Microsoft.DiagnosticsHub.Packaging.InteropEx.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DiagnosticsHub\StandardCollector\MyInterop.cs" />
+    <Compile Include="VisualStudio\Internal\BrandNames.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\ClientDelegate.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CollectorActionException.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CollectorActions.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\DefaultAgent.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\TargetLauncher.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\PerfMarkerAgent.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\Resources.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\Mode.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\RuntimeOptions.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\Program.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\VspxConverter.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\InvalidModeParsingException.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\InvalidOptionParsingException.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\ModeSpecifics`1.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\FlagSpecifics.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\Parser.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\ParserBase`1.cs" />
+    <Compile Include="DiagnosticsHub\StandardCollector\CommandLine\ParsingException.cs" />
+    <Compile Include="DiagnosticsHub\DataWarehouse\ResourceIdentity.cs" />
+    <Compile Include="DiagnosticsHub\DataWarehouse\ResourceTag.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DiagnosticsHub\StandardCollector\Resources.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

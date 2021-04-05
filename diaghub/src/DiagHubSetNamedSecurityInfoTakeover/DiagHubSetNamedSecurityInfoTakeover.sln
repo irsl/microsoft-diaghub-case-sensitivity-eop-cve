@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1300
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiagHubSetNamedSecurityInfoTakeover", "DiagHubSetNamedSecurityInfoTakeover\DiagHubSetNamedSecurityInfoTakeover.csproj", "{BCFD8C75-D754-42EC-964F-D2C6BF2CECE7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BCFD8C75-D754-42EC-964F-D2C6BF2CECE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCFD8C75-D754-42EC-964F-D2C6BF2CECE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCFD8C75-D754-42EC-964F-D2C6BF2CECE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCFD8C75-D754-42EC-964F-D2C6BF2CECE7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5DE26B25-A38C-44F8-A7AF-420B02C2E840}
+	EndGlobalSection
+EndGlobal

