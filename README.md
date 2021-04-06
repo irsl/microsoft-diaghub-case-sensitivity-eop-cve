@@ -602,11 +602,27 @@ Note: this is what I recommended Microsoft to remediate the flaw and I didn't ve
 
 Though this was rated important severity, Microsoft doesn't pay a bounty that involves symlinks or junction points, as they are experimenting with a new generic protection
 measure against attacks like this. While such a feature coming is nice, it is also a bit unfair as it is not available for the time being, not even in the insider builds.
+No money, no t-shirt, no mug.
 
 Futhermore, this is a story of a reverse bounty in this case :) I used Azure to host an Windows Insider Preview VM (as I didn't want to reinstall/upgrade my desktop).
 I was shocked next month when my credit card was charged for this instance the first time, and deleted it immediately. Next month I was shocked once again, when I learned it
 actually didn't remove the disks... The invaluable take away: always create a resource group for your stuff and always clean up by removing the resource group not individual
 components.
+
+## Timeline
+
+2020-11-25: Initial report submitted to MSRC. Textbox filled with "Please find the full report in the attached zip file"
+2020-11-25: ... 30 minutes later: "This thread is being closed and no longer monitored" (lol, they must be flooded with reports really)
+2020-11-25: Resubmitted with an excerpt from the full report (the textbox has a length constraint...)
+2020-11-25: "Your report has been received and you should receive a follow-up message from the case manager once your case has been fully reviewed."
+2020-11-29: Sent an amendment to MSRC demonstrating the EoP impact of the vulnerabilities
+2020-11-30: Case #62280 opened by MSRC 
+2020-12-07: Behaviour confirmed by MSRC
+2020-12-09: Risk assessment by MSRC completed with Severity: Important, Security Impact: Elevation of Privilege; no bounty rewarded (Out of scope: "Local vulnerabilities involving file path redirection through junctions or mountpoints")
+2020-12-18: MSRC: "Would you mind keeping this issue confidential until Tuesday, April 13"?
+2021-01-04: Report splitted into 3 dedicated cases by MSRC
+2021-04-13: Publishing this write-up
+
 
 ## Credits
 
