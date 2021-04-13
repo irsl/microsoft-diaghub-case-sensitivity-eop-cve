@@ -623,6 +623,14 @@ components.
 2021-01-04: Report splitted into 3 dedicated cases by MSRC
 2021-04-13: Publishing this write-up
 
+## Links
+
+- https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2021-28321
+
+- https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2021-28322
+
+- https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2021-28323
+
 
 ## Credits
 
