@@ -50,7 +50,7 @@ An attacker could supply the path to the `Etw` junction to Diaghub as scratch di
 If you prefer to enable this feature manually, you can create `NtfsEnableDirCaseSensitivity` DWORD with value 1 at
 `HKLM\SYSTEM\CurrentControlSet\Control\FileSystem`
 
-## Vulnerability #1: deleting arbitrary files
+## Vulnerability #1 (CVE-2021-28321): deleting arbitrary files
 
 As a potential exploitation, I'm demonstrating here an arbitrary file delete attack. This abuses the `DiagHubCommon::DeleteDirectory` method invoked when a session is stopped.
 
@@ -196,7 +196,7 @@ Proof of concept code is attached (`DiagHubFileDeletePoc`). The other project (`
 service (instead of VS's diaghub which is a similar service with similar API but different IIDs and some more minor differences).
 
 
-## Vulnerability #2: dropping files outside the scratch directory (no control over the content)
+## Vulnerability #2 (CVE-2021-28322): dropping files outside the scratch directory (no control over the content)
 
 The second potential attack vector is tricking the service to drop files outside the scratch directory.
 
@@ -339,7 +339,7 @@ C:\111\bin>type c:\Windows\system32\dropped.dll
 Note: since this attack relies on a race condition, you might need to execute the tool multiple times. 
 
 
-## Vulnerability #3: taking over file permissions of existing files
+## Vulnerability #3 (CVE-2021-28313): taking over file permissions of existing files
 
 While researching this flaw, I found it was possible to abuse the call to `SetNamedSecurityInfoW` (via `SecuredDirectory::ExposeDirectory`) in a reliable way.
 If you call `SetNamedSecurityInfoW` with `pObjectName` specifying a directory junction and request it to propagate inherited ACEs, it won't iterate over the
